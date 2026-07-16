@@ -79,6 +79,12 @@ previous login, and kept auto-supplying it to git push instead of prompting
 fresh.
 
 **Fix:**
+```
+git credential-osxkeychain erase
+protocol=https
+host=github.com
+(press Enter on a blank line to submit)
+```
 This clears the cached credential. After that, `git push` correctly prompted
 fresh for username + token, and authentication succeeded.
 
