@@ -55,3 +55,40 @@ which is where the actual prompt/instructions go.
 5. Added .DS_Store to .gitignore to keep the repo clean of Mac system files
 
 ## Commands to Resume Work Next Session
+
+## Security Incident + Git Authentication Troubleshooting
+
+### What happened
+While pasting terminal output back into chat for documentation purposes, a
+GitHub Personal Access Token was accidentally exposed in plain text (typed
+directly into Terminal instead of at the hidden password prompt).
+
+### Response (correct incident-response pattern)
+1. Immediately revoked the exposed token at github.com/settings/tokens
+2. Generated a new token (repo scope only, 90-day expiration)
+3. Verified the new token worked using a direct API test:
+   `curl -u USERNAME:TOKEN https://api.github.com/user`
+   (returned valid account JSON = token confirmed working)
+
+### Problem: git push kept failing even with a valid token
+**Symptom:** `remote: Invalid username or token` even though curl confirmed
+the token was valid.
+
+**Root cause:** macOS Keychain had cached the OLD (deleted) token from a
+previous login, and kept auto-supplying it to git push instead of prompting
+fresh.
+
+**Fix:**
+This clears the cached credential. After that, `git push` correctly prompted
+fresh for username + token, and authentication succeeded.
+
+### Lessons learned
+1. Never type a secret (token/password) directly as a terminal command —
+   only paste it at a hidden password-style prompt. If it prints visibly on
+   screen, that's a signal something is wrong.
+2. When credentials "should work" but keep failing, suspect a CACHED old
+   credential before assuming the new one is broken. Test the new credential
+   in isolation first (e.g. via curl) to rule that out.
+3. Incident response pattern for any exposed secret: revoke immediately,
+   issue a new one, verify the new one works, THEN retry the original task.
+   Don't skip the "revoke" step even for low-risk tokens.
