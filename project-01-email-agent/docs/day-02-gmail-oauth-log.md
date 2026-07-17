@@ -41,3 +41,23 @@ Scoped permissions matter. When connecting any real business account
 (Gmail, CRM, ERP, etc.) for a client, always review the exact permission
 list before approving, and grant only what the specific task requires —
 never "select all" by default.
+
+## Draft Creation — Final Working Version
+
+Switched from using the "snippet" field (truncated, unreliable) to the
+full "text" field returned by Gmail's node (clean, complete email body).
+This fixed both the empty-prompt errors and produced much better,
+more context-aware AI replies (e.g. correctly addressing the sender by
+name after reading their full signature).
+
+Confirmed working end-to-end:
+Gmail (get 1 filtered email) -> Basic LLM Chain (system prompt + full
+email text) -> Gmail Create a Draft (using Thread ID to attach as a
+reply) -> verified safely sitting in Gmail Drafts, fully editable,
+nothing sent automatically.
+
+## Known follow-up item
+"To" recipient field via header lookup still needs debugging -- shows
+"(No Recipients)" even though the expression appears correct. Not
+blocking, since drafts can be addressed manually before sending, but
+worth revisiting for full automation later.
