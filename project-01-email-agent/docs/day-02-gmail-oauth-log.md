@@ -61,3 +61,27 @@ nothing sent automatically.
 "(No Recipients)" even though the expression appears correct. Not
 blocking, since drafts can be addressed manually before sending, but
 worth revisiting for full automation later.
+
+## Recipient Field Fix (Day 3 morning)
+
+Root cause found: Gmail's raw "headers" field is an OBJECT (accessed by
+name directly, e.g. headers.from), not an ARRAY (which would need
+.find()). Earlier code incorrectly assumed an array structure.
+
+Also discovered: header names are lowercase ("from", not "From"), and
+the raw value includes a literal "From: " label plus angle brackets
+around the address, e.g. "From: <james@thepackaging.ca>" -- not just
+the clean address.
+
+## Final working expression for "To Email"
+{{ $('Get many messages').item.json.headers.from.match(/<(.+)>/)?.[1] }}
+
+Breakdown:
+- .headers.from -> direct property access (object, not array)
+- .match(/<(.+)>/)?.[1] -> regex that extracts just the text inside
+  < > brackets, discarding the "From: " label
+
+## Lesson learned
+Before writing an expression against unfamiliar API data, inspect the
+actual raw structure first (search/filter the real output) rather than
+guessing the shape. Saved significant back-and-forth once done directly.
