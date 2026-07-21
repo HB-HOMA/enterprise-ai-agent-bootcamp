@@ -1,0 +1,9 @@
+Most AI agent builds fail before they ever reach production — not because of the model, but because of what surrounds it.
+
+When you're designing agent orchestration, the unglamorous work of authentication, OAuth flows, and encryption isn't a checkbox at the end — it's the foundation everything else runs on. An agent that can autonomously trigger workflows, call APIs, and chain tasks across systems is only as trustworthy as its security layer. Get that wrong, and you haven't built automation; you've built exposure.
+
+What does "best practice" actually look like here? Scoped OAuth tokens so agents only access what they need. Encrypted secrets never hardcoded into prompts or memory. Clear audit trails so when something goes wrong — and at some point, something will — you know exactly what the agent touched and when. The strategy conversation and the security conversation need to happen in the same room, at the same time.
+
+What's the trickiest part of agent security you've run into in your own builds?
+
+#AgentAI #AIStrategy #Workflow #AI
