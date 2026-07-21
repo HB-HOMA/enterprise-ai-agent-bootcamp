@@ -43,3 +43,10 @@ Channels: Email (Gmail) -> LinkedIn posts -> WhatsApp
 2. Run: nvm use 22   (make sure you're on Node 22, not system default)
 3. Run: n8n start
 4. Open browser to: http://localhost:5678 (use Chrome, not Safari)
+
+## Day 7 — Planned addition
+- Duplicate-content detection for LinkedIn Agent: check new draft
+  topics/content against existing files in project-02-linkedin-agent/
+  drafts/ before generating, to avoid repeating the same core message.
+  Approach: inject past post content/summaries as context, add a rule
+  instructing the model to avoid close duplication.
