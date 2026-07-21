@@ -1,0 +1,28 @@
+Here's a draft LinkedIn post for Homa:
+
+---
+
+Most AI agent projects stall — not because the models aren't capable, but because the infrastructure around them wasn't built for trust.
+
+When you move from AI assistants to AI agents that *actually execute* business workflows, the stakes change entirely.
+
+An agent that can read, decide, and act needs more than a great prompt.
+It needs an architecture designed for trust from day one.
+
+Here's what that looks like in practice:
+
+✅ **Authentication** — Every agent must prove who it is before it acts. No exceptions.
+✅ **OAuth** — Delegated authorization so agents access only what they're permitted to — scoped, auditable, revocable.
+✅ **Encryption** — Data in motion and at rest is protected across every handoff in the orchestration chain.
+✅ **Agent Orchestration** — Multi-agent workflows are only as strong as the trust contracts between each node.
+✅ **Governance hooks** — Every automated decision leaves a traceable, auditable footprint.
+
+A lot of teams are building AI agents.
+Very few are building *trusted* AI agents.
+
+Automation without governance is just fast risk.
+Trusted intelligent workflows are competitive advantage.
+
+What's the biggest gap you're seeing in enterprise AI agent adoption — the technology, or the trust architecture around it?
+
+#AgentAI #AI #Automation #Workflow #AIStrategy #EnterpriseArchitecture #OAuth #Security #Governance #ProductManagement
