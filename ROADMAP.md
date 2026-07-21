@@ -12,8 +12,8 @@ Channels: Email (Gmail) -> LinkedIn posts -> WhatsApp
 | 1 | Foundations + Environment Setup | n8n, Claude API, GitHub repo all working | ✅ Done |
 | 2 | Prompt Engineering + Email Agent v1 | Email -> Draft Reply -> Approval -> Send | ⏳ Next |
 | 3 | Context Engineering + Voice/Tone | Agent writes in your voice using a context profile | |
-| 4 | LinkedIn Post Agent | Topic -> Draft Post -> Approval -> Post | |
-| 5 | WhatsApp Agent | Draft-reply-approve-send on WhatsApp | |
+| 4 | LinkedIn Post Agent | Topic -> Draft Post -> Approval -> Post (draft-only, no live posting) | ✅ Done |
+| 5 | WhatsApp Agent | Draft-reply-approve-send on WhatsApp | ⏳ Next |
 | 6 | Multi-Agent Orchestration | All 3 channels unified into one orchestrator | |
 | 7 | Enterprise Hardening | Error handling, retries, logging, audit trail | |
 | 8 | Security & Governance + Reskin | Security doc + adapted template for 2nd industry | |
