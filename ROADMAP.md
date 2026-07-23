@@ -13,7 +13,7 @@ Channels: Email (Gmail) -> LinkedIn posts -> WhatsApp
 | 2 | Prompt Engineering + Email Agent v1 | Email -> Draft Reply -> Approval -> Send | ⏳ Next |
 | 3 | Context Engineering + Voice/Tone | Agent writes in your voice using a context profile | |
 | 4 | LinkedIn Post Agent | Topic -> Draft Post -> Approval -> Post (draft-only, no live posting) | ✅ Done |
-| 5 | WhatsApp Agent | Draft-reply-approve-send on WhatsApp | ⏳ Next |
+| 5 | WhatsApp Agent | Draft-reply-approve-send on WhatsApp | 🔶 In Progress |
 | 6 | Multi-Agent Orchestration | All 3 channels unified into one orchestrator | |
 | 7 | Enterprise Hardening | Error handling, retries, logging, audit trail | |
 | 8 | Security & Governance + Reskin | Security doc + adapted template for 2nd industry | |
@@ -50,3 +50,32 @@ Channels: Email (Gmail) -> LinkedIn posts -> WhatsApp
   drafts/ before generating, to avoid repeating the same core message.
   Approach: inject past post content/summaries as context, add a rule
   instructing the model to avoid close duplication.
+
+## Day 5 — Progress Notes
+Architecture fully built in n8n:
+- Trigger: Twilio WhatsApp Sandbox webhook (via ngrok tunnel, since local
+  n8n's built-in --tunnel was removed in v2.0)
+- AI Draft: Claude drafts a friendly/professional reply via system prompt
+- Human Approval: draft and original sender sent to Homa's own WhatsApp for
+  YES/edit decision, using an If node to distinguish approver replies from
+  new incoming messages (requires 2 distinct WhatsApp numbers to test
+  properly, solo testing with one number cannot simulate both roles)
+- State: n8n Data table (pending_approvals) holds sender/draft/status
+  between the initial draft and the approval reply
+- Log: Google Sheets, one row per completed interaction (timestamp,
+  sender, incoming message, draft, approval status, final sent text)
+
+Blocked: final send-to-original-sender step failing on Twilio's side
+(error 21660, mismatch between From number and account), confirmed
+NOT an n8n config issue since Twilio's own Console test tool for the
+sandbox also failed to load (Oops! Something went wrong) at the same
+time. Likely a live Twilio platform issue, not something in our control.
+Next session: retest once Twilio's sandbox tooling is responsive again.
+
+Known follow-up items:
+- Claude's Anthropic node output occasionally returns a thinking block
+  as content[0] instead of the reply text, fixed by using
+  content.find(c => c.type equals text).text instead of content[0].text
+  wherever draft text is referenced.
+- pending_approvals row status isn't auto-updated to approved/edited
+  after send, fine for prototype, add for Day 7 hardening pass.
