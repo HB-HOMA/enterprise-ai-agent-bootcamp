@@ -103,3 +103,13 @@ Root causes found and fixed:
 - Get row(s) needs a Limit(1) node or better filtering, old pending
   rows accumulate in pending_approvals since status is never updated
   after send, which caused batch-processing errors. Add for Day 7.
+
+## Day 5 — Post-test fixes
+- Fixed: added a Limit(1, Keep Last) node between Get row(s) and If1,
+  resolving the duplicate-send/duplicate-log issue caused by stale
+  pending rows accumulating (previously listed as a Day 7 item).
+- Fixed: added an instruction to the AI Draft system prompt telling
+  Claude to output only the final reply text, no visible reasoning or
+  self-corrections, which had been leaking into drafts occasionally.
+- Still open for Day 7: explicitly update pending_approvals row status
+  to approved/edited after send, rather than relying on Limit(1) alone.
