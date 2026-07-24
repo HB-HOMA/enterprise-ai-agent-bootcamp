@@ -13,7 +13,7 @@ Channels: Email (Gmail) -> LinkedIn posts -> WhatsApp
 | 2 | Prompt Engineering + Email Agent v1 | Email -> Draft Reply -> Approval -> Send | ⏳ Next |
 | 3 | Context Engineering + Voice/Tone | Agent writes in your voice using a context profile | |
 | 4 | LinkedIn Post Agent | Topic -> Draft Post -> Approval -> Post (draft-only, no live posting) | ✅ Done |
-| 5 | WhatsApp Agent | Draft-reply-approve-send on WhatsApp | 🔶 In Progress |
+| 5 | WhatsApp Agent | Draft-reply-approve-send on WhatsApp | ✅ Done |
 | 6 | Multi-Agent Orchestration | All 3 channels unified into one orchestrator | |
 | 7 | Enterprise Hardening | Error handling, retries, logging, audit trail | |
 | 8 | Security & Governance + Reskin | Security doc + adapted template for 2nd industry | |
@@ -79,3 +79,27 @@ Known follow-up items:
   wherever draft text is referenced.
 - pending_approvals row status isn't auto-updated to approved/edited
   after send, fine for prototype, add for Day 7 hardening pass.
+
+
+## Day 5 — Resolved
+Full loop confirmed working: Dubai number sends message, Claude drafts a
+friendly/professional reply, approval request sent to Homa's Canada
+number, YES reply approves, final message delivered to Dubai number,
+Google Sheet logs all six fields correctly.
+
+Root causes found and fixed:
+- n8n's native Twilio node had two separate issues sending via the shared
+  sandbox number (error 21660 account mismatch, error 21211 double
+  whatsapp prefix from the To Whatsapp toggle), replaced both Twilio
+  send nodes with generic HTTP Request nodes calling Twilio's REST API
+  directly with Basic Auth, which resolved it reliably.
+- Anthropic node occasionally returns a thinking block before the reply
+  text, fixed by using content.find(c => c.type equals text).text
+  instead of content[0].text.
+- HTTP Request nodes don't pass through input fields into their output
+  (only the API response), so downstream nodes needing custom fields
+  must reference the originating node by name (Get row(s), Webhook)
+  rather than json directly.
+- Get row(s) needs a Limit(1) node or better filtering, old pending
+  rows accumulate in pending_approvals since status is never updated
+  after send, which caused batch-processing errors. Add for Day 7.
