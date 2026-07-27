@@ -14,7 +14,7 @@ Channels: Email (Gmail) -> LinkedIn posts -> WhatsApp
 | 3 | Context Engineering + Voice/Tone | Agent writes in your voice using a context profile | |
 | 4 | LinkedIn Post Agent | Topic -> Draft Post -> Approval -> Post (draft-only, no live posting) | ✅ Done |
 | 5 | WhatsApp Agent | Draft-reply-approve-send on WhatsApp | ✅ Done |
-| 6 | Multi-Agent Orchestration | All 3 channels unified into one orchestrator | |
+| 6 | Multi-Agent Orchestration | All 3 channels unified into one orchestrator | 🔶 In Progress |
 | 7 | Enterprise Hardening | Error handling, retries, logging, audit trail | |
 | 8 | Security & Governance + Reskin | Security doc + adapted template for 2nd industry | |
 | 9 | Documentation + Portfolio Build-out | Full repo docs, architecture diagrams | |
@@ -113,3 +113,54 @@ Root causes found and fixed:
   self-corrections, which had been leaking into drafts occasionally.
 - Still open for Day 7: explicitly update pending_approvals row status
   to approved/edited after send, rather than relying on Limit(1) alone.
+
+## Day 6 — Progress Notes
+Architecture: unified orchestrator built as a shared "Approval Hub" sub-workflow
+using n8n's Execute Workflow Trigger + Wait node (Resume: On Form Submitted),
+called from each channel workflow via Execute Workflow (Wait For Sub-Workflow
+Completion enabled). This replaces the Day 5 approach of parsing WhatsApp
+replies for approval, which only worked for a single channel and required
+distinguishing sender vs approver by phone number.
+
+Approval Hub flow: receives channel, sender, incoming_message, draft_text ->
+sends a WhatsApp notification (via HTTP Request/Twilio, same as Day 5's fix)
+containing a one-time form link -> Wait node pauses until the form is
+submitted -> returns the submitted text to the calling workflow.
+
+Completed and tested end to end:
+- WhatsApp Agent v2 - Orchestrated: rebuilt to drop the old reply-parsing
+  logic (If/Get row(s)/pending_approvals/Limit/If1/Edit Fields chain) in
+  favor of a single call to the Approval Hub. Original Day 5 workflow left
+  untouched as a backup.
+- Email Agent v2 - Orchestrated: full rebuild from the Day 2 draft-only
+  version. Replaced manual/batch trigger with a real Gmail Trigger, added
+  a NO_REPLY_NEEDED branch (skips approval and logs as "skipped" when the
+  existing system prompt determines no reply is warranted), wired the AI
+  draft to the Approval Hub, and replaced "Create a draft" with an actual
+  Gmail "Reply to a message" send.
+- Shared Google Sheet log: added a Channel column so WhatsApp and Email
+  both log to one unified sheet (Timestamp, From, Incoming Message,
+  Drafted Reply, Approval Status, Final Sent Text, Channel).
+
+Bugs found and fixed:
+- Wait node's Form Description/Placeholder/Default Value fields do not
+  reliably evaluate expressions (confirmed known n8n limitation, not a
+  config error) - worked around by putting all dynamic context into the
+  WhatsApp notification message instead, which renders correctly.
+- Approval Hub's Wait node resume URL defaults to localhost, not the
+  ngrok domain, since n8n's WEBHOOK_URL env var was never set to the
+  tunnel address - approval links must be opened on the same Mac running
+  n8n (copy from WhatsApp into Chrome) rather than tapped on phone.
+  Fix for later: set WEBHOOK_URL to the ngrok domain.
+- WhatsApp notifications fail silently (Twilio error 63016, outside the
+  24-hour freeform messaging window) if Homa's number hasn't messaged the
+  sandbox recently - needs a message sent to the sandbox to refresh the
+  window before each testing session. Production fix would use an
+  approved Message Template instead of freeform text.
+- HTML entities (e.g. &#39; &gt;) from Gmail's snippet field show
+  un-decoded in the WhatsApp notification text - cosmetic, not fixed yet.
+
+Not done yet: LinkedIn Post Agent has not been wired to the Approval Hub.
+Current LinkedIn workflow (chat trigger -> AI draft -> write file, no
+approval step at all) still needs the same treatment as Email/WhatsApp.
+Carrying this forward as an open item, not blocking Day 7.

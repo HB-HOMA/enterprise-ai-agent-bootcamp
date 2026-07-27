@@ -1,0 +1,150 @@
+{
+  "name": "Approval Hub",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "channel"
+            },
+            {
+              "name": "sender"
+            },
+            {
+              "name": "incoming_message"
+            },
+            {
+              "name": "draft_text"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "19802d08-5ab4-49aa-ab4c-c3923c12fa78",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "=Approve Draft — {{ $json.channel }}",
+        "formDescription": "From: {{ $json.sender }}\nIncoming message: {{ $json.incoming_message }}",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Reply to send",
+              "fieldType": "textarea",
+              "placeholder": "={{ $json.draft_text }}",
+              "defaultValue": "={{ $json.draft_text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "bf8297fa-1abc-4483-9f9a-95181ac96b1b",
+      "name": "Wait",
+      "webhookId": "d1bdae0c-fd7a-4f7d-9aa1-f9550ba9d9d4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/YOUR_TWILIO_ACCOUNT_SID/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "To",
+              "value": "whatsapp:+16046268555"
+            },
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "Body",
+              "value": "=New approval needed ({{ $json.channel }}) from {{ $json.sender }}: \"{{ $json.incoming_message }}\"      Review and respond here: {{ $execution.resumeFormUrl }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b68b9292-c3a7-4069-8488-e5015e7e37ca",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "tuUhVrFHb0XWLWYh",
+          "name": "Unnamed credential 2"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "channel": "WhatsApp",
+          "sender": "whatsapp:+971504271353",
+          "incoming_message": "This is a test",
+          "draft_text": "This is a test draft reply"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4b5cc9de-a15e-4e87-adfd-45d4d92c60f8",
+  "meta": {
+    "instanceId": "c45f8103304c40e6c068cc75197676114d53d747613127a56261af76e22b2022"
+  },
+  "nodeGroups": [],
+  "id": "Mp3YDi3w9BbdpUES",
+  "tags": []
+}
