@@ -1,0 +1,653 @@
+{
+  "name": "Email Agent v2 - Orchestrated",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.snippet }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": " You are Homa's personal email assistant. Your job is to read an incoming email and draft a professional reply on her behalf.  Voice & Tone: Write in a warm, conversational tone with a bit of personality — approachable first, polished second. Occasionally (not every time) use natural phrases like \"Happy to help\" or \"Let me know if...\" when they fit naturally. Avoid stiff corporate boilerplate like \"Per my last email\" or \"As per our conversation.\" Avoid excessive exclamation points or forced enthusiasm. Get to the point quickly, but with warmth, not abruptness.  Rules: 1. Length: keep replies to one short paragraph (3-5 sentences). Do not write long emails unless the incoming message clearly requires detail. 2. Always end the draft with a sign-off: \"Best regards, Homa\" 3. If the email asks a question you cannot confidently answer (e.g. scheduling specifics, confidential information, pricing, commitments), do NOT guess. Instead, draft a reply that acknowledges the message and says Homa will follow up with specifics. 4. Never commit to dates, prices, or promises on Homa's behalf. 5. If the incoming email is spam, a newsletter, or does not need a reply, respond with exactly: \"NO_REPLY_NEEDED\" instead of a draft. 6. Output ONLY the email reply text (or NO_REPLY_NEEDED). Do not include any explanation, notes, or commentary outside the draft itself."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        544,
+        48
+      ],
+      "id": "ff2f82ec-b22e-446d-9f58-e82bf3717828",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-6",
+          "cachedResultName": "Claude Sonnet 4.6"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        544,
+        288
+      ],
+      "id": "d67eab5a-9b54-43c1-8bea-4c9f3485835b",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "19f67fXTYIavgeVG",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        288,
+        48
+      ],
+      "id": "27c33534-7c4a-4795-ace6-bdf47e4ff052",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6opOONdjXwvT4xrJ",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Mp3YDi3w9BbdpUES",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Mp3YDi3w9BbdpUES",
+          "cachedResultName": "Approval Hub"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "Email",
+            "sender": "={{ $('Gmail Trigger').item.json.From }}",
+            "incoming_message": "=Subject: {{ $('Gmail Trigger').item.json.Subject }}\\n{{ ((s) => s.replace(/&#(\\d+);/g, (m,n)=>String.fromCharCode(n)).replace(/&#x([0-9a-fA-F]+);/g, (m,h)=>String.fromCharCode(parseInt(h,16))).replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&apos;/g,\"'\").replace(/&nbsp;/g,' '))($('Gmail Trigger').item.json.snippet) }}",
+            "draft_text": "={{ $json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "incoming_message",
+              "displayName": "incoming_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "draft_text",
+              "displayName": "draft_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1216,
+        160
+      ],
+      "id": "223227c9-6bac-442f-aaeb-1aec9f66276a",
+      "name": "Call 'Approval Hub'",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "967d0492-0776-4304-b205-2688e05c6544",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "NO_REPLY_NEEDED",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        48
+      ],
+      "id": "2ba823bc-90d0-45cf-8f4c-cd4063a9a48e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1WPsODAZKg77e0T2TE2yleiOYJG7kXCnpmry1Bn2XEF0",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WPsODAZKg77e0T2TE2yleiOYJG7kXCnpmry1Bn2XEF0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "From ": "={{ $('Gmail Trigger').item.json.From }}",
+            "Incoming Message": "=Subject: {{ $('Gmail Trigger').item.json.Subject }}\\n{{ ((s) => s.replace(/&#(\\d+);/g, (m,n)=>String.fromCharCode(n)).replace(/&#x([0-9a-fA-F]+);/g, (m,h)=>String.fromCharCode(parseInt(h,16))).replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&apos;/g,\"'\").replace(/&nbsp;/g,' '))($('Gmail Trigger').item.json.snippet) }}",
+            "Drafted Reply": "NO_REPLY_NEEDED",
+            "Approval Status": "skipped",
+            "Channel ": "Email"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From ",
+              "displayName": "From ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Incoming Message",
+              "displayName": "Incoming Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drafted Reply",
+              "displayName": "Drafted Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": " Final Sent Text",
+              "displayName": " Final Sent Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Channel ",
+              "displayName": "Channel ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1216,
+        -128
+      ],
+      "id": "b06aed0a-1861-455b-b81e-66c394cc0004",
+      "name": "Append row in sheet",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MqK6Z48utvDvl7y6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $(\"Call 'Approval Hub'\").item.json['Reply to send'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        160
+      ],
+      "id": "fb274d7c-d9fe-4395-b74a-fda8d2e49a3e",
+      "name": "Reply to a message",
+      "webhookId": "ab57712a-2ae9-4fd9-a498-6866c3097574",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6opOONdjXwvT4xrJ",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1WPsODAZKg77e0T2TE2yleiOYJG7kXCnpmry1Bn2XEF0",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "From ": "={{ $('Gmail Trigger').item.json.From }}",
+            "Incoming Message": "=Subject: {{ $('Gmail Trigger').item.json.Subject }}\\n{{ $('Gmail Trigger').item.json.snippet }}",
+            "Drafted Reply": "={{ $('Basic LLM Chain').item.json.text }}",
+            "Approval Status": "={{ $(\"Call 'Approval Hub'\").item.json['Reply to send'] === $('Basic LLM Chain').item.json.text ? 'approved' : 'edited' }}",
+            " Final Sent Text": "={{ $(\"Call 'Approval Hub'\").item.json['Reply to send'] }}",
+            "Channel ": "Email"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "From ",
+              "displayName": "From ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Incoming Message",
+              "displayName": "Incoming Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Drafted Reply",
+              "displayName": "Drafted Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": " Final Sent Text",
+              "displayName": " Final Sent Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Channel ",
+              "displayName": "Channel ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1632,
+        160
+      ],
+      "id": "096036c3-715f-4e0e-9fdd-115166492438",
+      "name": "Append row in sheet1",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MqK6Z48utvDvl7y6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1WPsODAZKg77e0T2TE2yleiOYJG7kXCnpmry1Bn2XEF0/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WPsODAZKg77e0T2TE2yleiOYJG7kXCnpmry1Bn2XEF0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "From ": "={{ $('Gmail Trigger').item.json.From }}",
+            "Incoming Message": "=Subject: {{ $('Gmail Trigger').item.json.Subject }}\\n{{ ((s) => s.replace(/&#(\\d+);/g, (m,n)=>String.fromCharCode(n)).replace(/&#x([0-9a-fA-F]+);/g, (m,h)=>String.fromCharCode(parseInt(h,16))).replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&apos;/g,\"'\").replace(/&nbsp;/g,' '))($('Gmail Trigger').item.json.snippet) }}",
+            "Approval Status": "={{ 'FAILED: ' + (($json.error && $json.error.message) || $json.message || JSON.stringify($json)).toString().substring(0, 200) }}",
+            " Final Sent Text": "N/A - send failed",
+            "Channel ": "Email",
+            "Drafted Reply": "={{ $('Basic LLM Chain').item.json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From ",
+              "displayName": "From ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Incoming Message",
+              "displayName": "Incoming Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drafted Reply",
+              "displayName": "Drafted Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": " Final Sent Text",
+              "displayName": " Final Sent Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Channel ",
+              "displayName": "Channel ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        304
+      ],
+      "id": "a37b2b34-b5b7-4886-94c5-cb0efafa18b5",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MqK6Z48utvDvl7y6",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Approval Hub'": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Approval Hub'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "692ff169-775b-4f3c-a892-4b23974c62d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c45f8103304c40e6c068cc75197676114d53d747613127a56261af76e22b2022"
+  },
+  "nodeGroups": [],
+  "id": "R7iwcGqBdxAtzuG4",
+  "tags": []
+}

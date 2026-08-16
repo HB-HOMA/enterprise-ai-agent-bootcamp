@@ -229,7 +229,8 @@
         0
       ],
       "id": "06209859-e577-4d00-befa-3fed219748a8",
-      "name": "Call 'Approval Hub'"
+      "name": "Call 'Approval Hub'",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -250,7 +251,8 @@
           "id": "RYaaeCw3KYNr76JU",
           "name": "LinkedIn account"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -337,6 +339,98 @@
       ],
       "id": "abc5c549-f511-4ffc-a28f-421dfa90e370",
       "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MqK6Z48utvDvl7y6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1zWYKbqWg1ocUQE2Ggs6uYfFEo4pXhsne1e5YzC72M-0/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zWYKbqWg1ocUQE2Ggs6uYfFEo4pXhsne1e5YzC72M-0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "Topic": "={{ (($('Call \\'Approval Hub\\'').item.json['Reply to send']) || '').match(/#\\w+/g)?.join(', ') || 'General' }}",
+            "Draft Text": "={{ $('AI Agent').item.json.output }}",
+            "Approval Status": "={{ 'FAILED: ' + (($json.error && $json.error.message) || $json.message || JSON.stringify($json)).toString().substring(0, 200) }}",
+            "Final Posted Text": "N/A - publish failed"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Draft Text",
+              "displayName": "Draft Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Final Posted Text",
+              "displayName": "Final Posted Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1392,
+        176
+      ],
+      "id": "c7d5dc97-7980-4ef1-bca8-777406492b07",
+      "name": "Append row in sheet1",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "MqK6Z48utvDvl7y6",
@@ -432,6 +526,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -439,9 +540,10 @@
   "active": true,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "56e7995f-6236-465f-a148-d6e78ebed062",
+  "versionId": "c6d87e96-b9f1-4c13-a0bb-593fce59f2a1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c45f8103304c40e6c068cc75197676114d53d747613127a56261af76e22b2022"
