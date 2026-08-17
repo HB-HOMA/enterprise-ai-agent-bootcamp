@@ -52,3 +52,10 @@ Uses Tavily (free tier) as an HTTP Request Tool on the AI Agent, rather than a n
 
 - Reusable pattern for running this agent for someone else: duplicate the workflow, swap LinkedIn credential, resume doc, and approval notification target.
 - Sheet logging's `Topic` field currently just extracts hashtags from the post — fine for now, but could be made richer by having the AI Agent output a structured topic tag separately.
+
+## Prompt update — Aug 17, 2026
+
+Added two instructions to the AI Agent's drafting prompt after reviewing an external (ChatGPT) critique of a draft post:
+
+1. Keep cited stats/reports clearly separated from the agent's own interpretation — don't blend "the data says X" and "which suggests Y" into one claim attributed to the source.
+2. Repetition check now also compares recent posts for shared underlying thesis/story arc, not just overlapping topics or hashtags — catches cases where two posts make the same point with different numbers.
